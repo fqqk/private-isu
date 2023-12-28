@@ -1,0 +1,255 @@
+
+# 20.4s user time, 640ms system time, 58.56M rss, 390.12G vsz
+# Current date: Fri Dec 29 01:33:49 2023
+# Hostname: fukushinoMacBook-Air.local
+# Files: logs/mysql/mysql-slow.log
+# Overall: 190.05k total, 29 unique, 61.31 QPS, 0.31x concurrency ________
+# Time range: 2023-12-28T14:41:07 to 2023-12-28T15:32:47
+# Attribute          total     min     max     avg     95%  stddev  median
+# ============     ======= ======= ======= ======= ======= ======= =======
+# Exec time           965s     5us      9s     5ms     1ms   145ms   224us
+# Lock time             2s       0    84ms     8us    16us   568us       0
+# Rows sent          3.62M       0   9.77k   19.95    0.99  421.66       0
+# Rows examine      15.91M       0  97.66k   87.77   10.84   2.12k       0
+# Query size        18.55M      16   1.16M  102.33   72.65   7.73k   31.70
+
+# Profile
+# Rank Query ID                            Response time  Calls R/Call V/M
+# ==== =================================== ============== ===== ====== ===
+#    1 0x4858CF4D8CAA743E839C127C71B69E75  699.2683 72.5%   326 2.1450  3.22 SELECT posts
+#    2 0x7A12D0C8F433684C3027353C36CAB572   54.2819  5.6%    45 1.2063  3.56 SELECT posts
+#    3 0xCDEB1AFF2AE2BE51B2ED5CF03D4E749F   43.2628  4.5%    75 0.5768  0.53 SELECT comments
+#    4 0xDA556F9115773A1A99AA0165670CE848   39.6972  4.1% 62675 0.0006  0.04 ADMIN PREPARE
+#    5 0x396201721CD58410E070DA9421CA8C8D   39.5843  4.1% 38271 0.0010  0.03 SELECT users
+#    6 0x624863D30DAC59FA16849282195BE09F   21.5940  2.2%  8856 0.0024  0.04 SELECT comments
+#    7 0x19759A5557089FD5B718D440CBBB5C55   17.4977  1.8%  5079 0.0034  0.03 SELECT posts
+#    8 0x422390B42D4DD86C7539A5F45EB76A80   16.0156  1.7%  9274 0.0017  0.04 SELECT comments
+# MISC 0xMISC                               33.5004  3.5% 65452 0.0005   0.0 <21 ITEMS>
+
+# Query 1: 0.16 QPS, 0.34x concurrency, ID 0x4858CF4D8CAA743E839C127C71B69E75 at byte 2594581706
+# Scores: V/M = 3.22
+# Time range: 2023-12-28T14:41:08 to 2023-12-28T15:14:58
+# Attribute    pct   total     min     max     avg     95%  stddev  median
+# ============ === ======= ======= ======= ======= ======= ======= =======
+# Count          0     326
+# Exec time     72    699s    97ms      9s      2s      8s      3s   526ms
+# Lock time      0     7ms     5us   905us    22us    40us    64us    11us
+# Rows sent     85   3.11M   9.77k   9.77k   9.77k   9.33k       0   9.33k
+# Rows examine  39   6.22M  19.53k  19.54k  19.54k  19.40k       0  19.40k
+# Query size     0  29.29k      92      92      92      92       0      92
+# String:
+# Hosts        webapp-app-1.webapp_default
+# Users        root
+# Query_time distribution
+#   1us
+#  10us
+# 100us
+#   1ms
+#  10ms
+# 100ms  ################################################################
+#    1s  #########################################
+#  10s+
+# Tables
+#    SHOW TABLE STATUS LIKE 'posts'\G
+#    SHOW CREATE TABLE `posts`\G
+# EXPLAIN /*!50100 PARTITIONS*/
+SELECT `id`, `user_id`, `body`, `mime`, `created_at` FROM `posts` ORDER BY `created_at` DESC\G
+
+# Query 2: 0.02 QPS, 0.03x concurrency, ID 0x7A12D0C8F433684C3027353C36CAB572 at byte 2618412237
+# Scores: V/M = 3.56
+# Time range: 2023-12-28T14:41:32 to 2023-12-28T15:14:56
+# Attribute    pct   total     min     max     avg     95%  stddev  median
+# ============ === ======= ======= ======= ======= ======= ======= =======
+# Count          0      45
+# Exec time      5     54s   116ms      8s      1s      5s      2s   412ms
+# Lock time      0   508us     5us    23us    11us    17us     4us    10us
+# Rows sent     11 437.63k   9.57k   9.76k   9.73k   9.33k       0   9.33k
+# Rows examine   5 877.22k  19.34k  19.53k  19.49k  19.40k      94  19.40k
+# Query size     0   6.24k     142     142     142     142       0     142
+# String:
+# Hosts        webapp-app-1.webapp_default
+# Users        root
+# Query_time distribution
+#   1us
+#  10us
+# 100us
+#   1ms
+#  10ms
+# 100ms  ################################################################
+#    1s  ################
+#  10s+
+# Tables
+#    SHOW TABLE STATUS LIKE 'posts'\G
+#    SHOW CREATE TABLE `posts`\G
+# EXPLAIN /*!50100 PARTITIONS*/
+SELECT `id`, `user_id`, `body`, `mime`, `created_at` FROM `posts` WHERE `created_at` <= '2016-01-02T11:46:25+09:00' ORDER BY `created_at` DESC\G
+
+# Query 3: 0.04 QPS, 0.02x concurrency, ID 0xCDEB1AFF2AE2BE51B2ED5CF03D4E749F at byte 2584172698
+# Scores: V/M = 0.53
+# Time range: 2023-12-28T14:41:09 to 2023-12-28T15:14:59
+# Attribute    pct   total     min     max     avg     95%  stddev  median
+# ============ === ======= ======= ======= ======= ======= ======= =======
+# Count          0      75
+# Exec time      4     43s   157ms      3s   577ms      2s   555ms   393ms
+# Lock time      0   782us     5us    89us    10us    22us    10us     6us
+# Rows sent      0      75       1       1       1       1       0       1
+# Rows examine  44   7.15M  97.66k  97.66k  97.66k  97.04k       0  97.04k
+# Query size     0   4.54k      61      62   61.97   59.77    0.00   59.77
+# String:
+# Hosts        webapp-app-1.webapp_default
+# Users        root
+# Query_time distribution
+#   1us
+#  10us
+# 100us
+#   1ms
+#  10ms
+# 100ms  ################################################################
+#    1s  ########
+#  10s+
+# Tables
+#    SHOW TABLE STATUS LIKE 'comments'\G
+#    SHOW CREATE TABLE `comments`\G
+# EXPLAIN /*!50100 PARTITIONS*/
+SELECT COUNT(*) AS count FROM `comments` WHERE `user_id` = 737\G
+
+# Query 4: 30.86 QPS, 0.02x concurrency, ID 0xDA556F9115773A1A99AA0165670CE848 at byte 2569814704
+# Scores: V/M = 0.04
+# Time range: 2023-12-28T14:41:08 to 2023-12-28T15:14:59
+# Attribute    pct   total     min     max     avg     95%  stddev  median
+# ============ === ======= ======= ======= ======= ======= ======= =======
+# Count         32   62675
+# Exec time      4     40s   123us   475ms   633us   799us     5ms   224us
+# Lock time      0       0       0       0       0       0       0       0
+# Rows sent      0       0       0       0       0       0       0       0
+# Rows examine   0       0       0       0       0       0       0       0
+# Query size     9   1.79M      30      30      30      30       0      30
+# String:
+# Hosts        webapp-app-1.webapp_default
+# Users        root
+# Query_time distribution
+#   1us
+#  10us
+# 100us  ################################################################
+#   1ms  ##
+#  10ms  #
+# 100ms  #
+#    1s
+#  10s+
+administrator command: Prepare\G
+
+# Query 5: 18.84 QPS, 0.02x concurrency, ID 0x396201721CD58410E070DA9421CA8C8D at byte 2584118785
+# Scores: V/M = 0.03
+# Time range: 2023-12-28T14:41:08 to 2023-12-28T15:14:59
+# Attribute    pct   total     min     max     avg     95%  stddev  median
+# ============ === ======= ======= ======= ======= ======= ======= =======
+# Count         20   38271
+# Exec time      4     40s   218us    94ms     1ms     1ms     6ms   348us
+# Lock time     57   968ms     4us    84ms    25us    23us   961us     7us
+# Rows sent      1  37.37k       1       1       1       1       0       1
+# Rows examine   0  37.37k       1       1       1       1       0       1
+# Query size     7   1.38M      36      39   37.88   36.69    0.19   36.69
+# String:
+# Hosts        webapp-app-1.webapp_default
+# Users        root
+# Query_time distribution
+#   1us
+#  10us
+# 100us  ################################################################
+#   1ms  ####
+#  10ms  #
+# 100ms
+#    1s
+#  10s+
+# Tables
+#    SHOW TABLE STATUS LIKE 'users'\G
+#    SHOW CREATE TABLE `users`\G
+# EXPLAIN /*!50100 PARTITIONS*/
+SELECT * FROM `users` WHERE `id` = 891\G
+
+# Query 6: 4.36 QPS, 0.01x concurrency, ID 0x624863D30DAC59FA16849282195BE09F at byte 2569248674
+# Scores: V/M = 0.04
+# Time range: 2023-12-28T14:41:08 to 2023-12-28T15:14:59
+# Attribute    pct   total     min     max     avg     95%  stddev  median
+# ============ === ======= ======= ======= ======= ======= ======= =======
+# Count          4    8856
+# Exec time      2     22s   370us   199ms     2ms     3ms    10ms   799us
+# Lock time      9   158ms     5us    48ms    17us    27us   512us     7us
+# Rows sent      0  24.03k       0       3    2.78    2.90    0.76    2.90
+# Rows examine   0 102.84k       0      23   11.89   16.81    4.33   12.54
+# Query size     3 710.04k      79      83   82.10   80.10    0.14   80.10
+# String:
+# Hosts        webapp-app-1.webapp_default
+# Users        root
+# Query_time distribution
+#   1us
+#  10us
+# 100us  ################################################################
+#   1ms  ##################################
+#  10ms  ##
+# 100ms  #
+#    1s
+#  10s+
+# Tables
+#    SHOW TABLE STATUS LIKE 'comments'\G
+#    SHOW CREATE TABLE `comments`\G
+# EXPLAIN /*!50100 PARTITIONS*/
+SELECT * FROM `comments` WHERE `post_id` = 9692 ORDER BY `created_at` DESC LIMIT 3\G
+
+# Query 7: 2.50 QPS, 0.01x concurrency, ID 0x19759A5557089FD5B718D440CBBB5C55 at byte 2571526394
+# Scores: V/M = 0.03
+# Time range: 2023-12-28T14:41:09 to 2023-12-28T15:14:59
+# Attribute    pct   total     min     max     avg     95%  stddev  median
+# ============ === ======= ======= ======= ======= ======= ======= =======
+# Count          2    5079
+# Exec time      1     17s   256us   163ms     3ms     8ms    11ms     1ms
+# Lock time      4    72ms     4us     2ms    14us    28us    33us     9us
+# Rows sent      0   4.96k       0       1    1.00    0.99    0.02    0.99
+# Rows examine   0   4.96k       0       1    1.00    0.99    0.02    0.99
+# Query size     1 193.78k      36      40   39.07   38.53    0.31   38.53
+# String:
+# Hosts        webapp-app-1.webapp_default
+# Users        root
+# Query_time distribution
+#   1us
+#  10us
+# 100us  #####################################################
+#   1ms  ################################################################
+#  10ms  #####
+# 100ms  #
+#    1s
+#  10s+
+# Tables
+#    SHOW TABLE STATUS LIKE 'posts'\G
+#    SHOW CREATE TABLE `posts`\G
+# EXPLAIN /*!50100 PARTITIONS*/
+SELECT * FROM `posts` WHERE `id` = 10000\G
+
+# Query 8: 4.57 QPS, 0.01x concurrency, ID 0x422390B42D4DD86C7539A5F45EB76A80 at byte 2594424783
+# Scores: V/M = 0.04
+# Time range: 2023-12-28T14:41:08 to 2023-12-28T15:14:59
+# Attribute    pct   total     min     max     avg     95%  stddev  median
+# ============ === ======= ======= ======= ======= ======= ======= =======
+# Count          4    9274
+# Exec time      1     16s   351us   200ms     2ms     2ms     8ms   596us
+# Lock time     18   319ms     4us    75ms    34us    26us     1ms     6us
+# Rows sent      0   9.06k       1       1       1       1       0       1
+# Rows examine   0  82.77k       0      20    9.14   14.52    3.84    9.83
+# Query size     3 589.53k      62      66   65.09   65.89    0.98   62.76
+# String:
+# Hosts        webapp-app-1.webapp_default
+# Users        root
+# Query_time distribution
+#   1us
+#  10us
+# 100us  ################################################################
+#   1ms  ##############
+#  10ms  #
+# 100ms  #
+#    1s
+#  10s+
+# Tables
+#    SHOW TABLE STATUS LIKE 'comments'\G
+#    SHOW CREATE TABLE `comments`\G
+# EXPLAIN /*!50100 PARTITIONS*/
+SELECT COUNT(*) AS `count` FROM `comments` WHERE `post_id` = 9826\G
