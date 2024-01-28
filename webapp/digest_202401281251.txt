@@ -1,0 +1,170 @@
+
+# 1.8s user time, 40ms system time, 46.56M rss, 389.86G vsz
+# Current date: Sun Jan 28 12:51:10 2024
+# Hostname: fukushinoMacBook-Air.local
+# Files: logs/mysql/mysql-slow.log
+# Overall: 410 total, 9 unique, 410 QPS, 0.71x concurrency _______________
+# Time range: 2024-01-27T15:32:05 to 2024-01-27T15:32:06
+# Attribute          total     min     max     avg     95%  stddev  median
+# ============     ======= ======= ======= ======= ======= ======= =======
+# Exec time          707ms     7us   238ms     2ms     2ms    13ms   204us
+# Lock time            2ms       0   260us     4us    17us    14us       0
+# Rows sent          9.92k       0   9.77k   24.79    0.99  471.22       0
+# Rows examine      19.84k       0  19.54k   49.54    2.90  979.63       0
+# Query size        14.83k      17      92   37.04   80.10   13.35   31.70
+
+# Profile
+# Rank Query ID                            Response time Calls R/Call V/M 
+# ==== =================================== ============= ===== ====== ====
+#    1 0x19759A5557089FD5B718D440CBBB5C55   0.3241 45.9%    20 0.0162  0.04 SELECT posts
+#    2 0x4858CF4D8CAA743E839C127C71B69E75   0.2377 33.6%     1 0.2377  0.00 SELECT posts
+#    3 0xDA556F9115773A1A99AA0165670CE848   0.0641  9.1%   131 0.0005  0.00 ADMIN PREPARE
+#    4 0x396201721CD58410E070DA9421CA8C8D   0.0261  3.7%    69 0.0004  0.00 SELECT users
+#    5 0x422390B42D4DD86C7539A5F45EB76A80   0.0243  3.4%    21 0.0012  0.01 SELECT comments
+# MISC 0xMISC                               0.0304  4.3%   168 0.0002   0.0 <4 ITEMS>
+
+# Query 1: 0 QPS, 0x concurrency, ID 0x19759A5557089FD5B718D440CBBB5C55 at byte 94381
+# Scores: V/M = 0.04
+# Time range: all events occurred at 2024-01-27T15:32:06
+# Attribute    pct   total     min     max     avg     95%  stddev  median
+# ============ === ======= ======= ======= ======= ======= ======= =======
+# Count          4      20
+# Exec time     45   324ms     1ms    90ms    16ms    82ms    26ms     3ms
+# Lock time     27   490us     9us    52us    24us    49us    12us    19us
+# Rows sent      0      20       1       1       1       1       0       1
+# Rows examine   0      20       1       1       1       1       0       1
+# Query size     5     786      39      40   39.30   38.53       0   38.53
+# String:
+# Databases    isuconp
+# Hosts        webapp-app-1.webapp_default
+# Users        root
+# Query_time distribution
+#   1us
+#  10us
+# 100us
+#   1ms  ################################################################
+#  10ms  #####################
+# 100ms
+#    1s
+#  10s+
+# Tables
+#    SHOW TABLE STATUS FROM `isuconp` LIKE 'posts'\G
+#    SHOW CREATE TABLE `isuconp`.`posts`\G
+# EXPLAIN /*!50100 PARTITIONS*/
+SELECT * FROM `posts` WHERE `id` = 10017\G
+
+# Query 2: 0 QPS, 0x concurrency, ID 0x4858CF4D8CAA743E839C127C71B69E75 at byte 429
+# Scores: V/M = 0.00
+# Time range: all events occurred at 2024-01-27T15:32:05
+# Attribute    pct   total     min     max     avg     95%  stddev  median
+# ============ === ======= ======= ======= ======= ======= ======= =======
+# Count          0       1
+# Exec time     33   238ms   238ms   238ms   238ms   238ms       0   238ms
+# Lock time     14   260us   260us   260us   260us   260us       0   260us
+# Rows sent     98   9.77k   9.77k   9.77k   9.77k   9.77k       0   9.77k
+# Rows examine  98  19.54k  19.54k  19.54k  19.54k  19.54k       0  19.54k
+# Query size     0      92      92      92      92      92       0      92
+# String:
+# Databases    isuconp
+# Hosts        webapp-app-1.webapp_default
+# Users        root
+# Query_time distribution
+#   1us
+#  10us
+# 100us
+#   1ms
+#  10ms
+# 100ms  ################################################################
+#    1s
+#  10s+
+# Tables
+#    SHOW TABLE STATUS FROM `isuconp` LIKE 'posts'\G
+#    SHOW CREATE TABLE `isuconp`.`posts`\G
+# EXPLAIN /*!50100 PARTITIONS*/
+SELECT `id`, `user_id`, `body`, `mime`, `created_at` FROM `posts` ORDER BY `created_at` DESC\G
+
+# Query 3: 0 QPS, 0x concurrency, ID 0xDA556F9115773A1A99AA0165670CE848 at byte 748
+# Scores: V/M = 0.00
+# Time range: all events occurred at 2024-01-27T15:32:06
+# Attribute    pct   total     min     max     avg     95%  stddev  median
+# ============ === ======= ======= ======= ======= ======= ======= =======
+# Count         31     131
+# Exec time      9    64ms   166us    11ms   488us     1ms     1ms   204us
+# Lock time      4    79us       0    42us       0       0     4us       0
+# Rows sent      0       0       0       0       0       0       0       0
+# Rows examine   0       0       0       0       0       0       0       0
+# Query size    25   3.84k      30      30      30      30       0      30
+# String:
+# Databases    isuconp
+# Hosts        webapp-app-1.webapp_default
+# Users        root
+# Query_time distribution
+#   1us
+#  10us
+# 100us  ################################################################
+#   1ms  ######
+#  10ms  #
+# 100ms
+#    1s
+#  10s+
+administrator command: Prepare\G
+
+# Query 4: 0 QPS, 0x concurrency, ID 0x396201721CD58410E070DA9421CA8C8D at byte 2595
+# Scores: V/M = 0.00
+# Time range: all events occurred at 2024-01-27T15:32:06
+# Attribute    pct   total     min     max     avg     95%  stddev  median
+# ============ === ======= ======= ======= ======= ======= ======= =======
+# Count         16      69
+# Exec time      3    26ms   280us     2ms   378us   568us   231us   301us
+# Lock time     30   544us     6us    20us     7us     9us     2us     6us
+# Rows sent      0      69       1       1       1       1       0       1
+# Rows examine   0      69       1       1       1       1       0       1
+# Query size    17   2.55k      36      38   37.88   36.69    0.21   36.69
+# String:
+# Databases    isuconp
+# Hosts        webapp-app-1.webapp_default
+# Users        root
+# Query_time distribution
+#   1us
+#  10us
+# 100us  ################################################################
+#   1ms  #
+#  10ms
+# 100ms
+#    1s
+#  10s+
+# Tables
+#    SHOW TABLE STATUS FROM `isuconp` LIKE 'users'\G
+#    SHOW CREATE TABLE `isuconp`.`users`\G
+# EXPLAIN /*!50100 PARTITIONS*/
+SELECT * FROM `users` WHERE `id` = 184\G
+
+# Query 5: 0 QPS, 0x concurrency, ID 0x422390B42D4DD86C7539A5F45EB76A80 at byte 998
+# Scores: V/M = 0.01
+# Time range: all events occurred at 2024-01-27T15:32:06
+# Attribute    pct   total     min     max     avg     95%  stddev  median
+# ============ === ======= ======= ======= ======= ======= ======= =======
+# Count          5      21
+# Exec time      3    24ms   420us    13ms     1ms   799us     3ms   515us
+# Lock time     11   209us     6us    28us     9us    14us     5us     7us
+# Rows sent      0      21       1       1       1       1       0       1
+# Rows examine   0     165       0      18    7.86   11.95    5.02    9.83
+# Query size     9   1.34k      65      66   65.29   65.89    0.50   62.76
+# String:
+# Databases    isuconp
+# Hosts        webapp-app-1.webapp_default
+# Users        root
+# Query_time distribution
+#   1us
+#  10us
+# 100us  ################################################################
+#   1ms  ###
+#  10ms  ###
+# 100ms
+#    1s
+#  10s+
+# Tables
+#    SHOW TABLE STATUS FROM `isuconp` LIKE 'comments'\G
+#    SHOW CREATE TABLE `isuconp`.`comments`\G
+# EXPLAIN /*!50100 PARTITIONS*/
+SELECT COUNT(*) AS `count` FROM `comments` WHERE `post_id` = 10021\G
