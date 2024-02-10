@@ -1,5 +1,6 @@
 require 'sinatra/base'
-require 'mysql2'
+# require 'mysql2'
+require 'mysql2-cs-bind'
 require 'rack-flash'
 require 'shellwords'
 require 'rack/session/dalli'
