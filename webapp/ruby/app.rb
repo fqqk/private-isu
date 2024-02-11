@@ -1,10 +1,11 @@
 require 'sinatra/base'
-# require 'mysql2'
-require 'mysql2-cs-bind'
+require 'mysql2'
+# require 'mysql2-cs-bind'
 require 'rack-flash'
 require 'shellwords'
 require 'rack/session/dalli'
 require 'fileutils'
+require 'openssl'
 
 module Isuconp
   class App < Sinatra::Base
@@ -61,6 +62,7 @@ module Isuconp
 
       def try_login(account_name, password)
         user = db.prepare('SELECT * FROM users WHERE account_name = ? AND del_flg = 0').execute(account_name).first
+        # user = db.xquery('SELECT * FROM users WHERE account_name = ? AND del_flg = 0', account_name).first
 
         if user && calculate_passhash(user[:account_name], password) == user[:passhash]
           return user
@@ -81,7 +83,8 @@ module Isuconp
 
       def digest(src)
         # opensslのバージョンによっては (stdin)= というのがつくので取る
-        `printf "%s" #{Shellwords.shellescape(src)} | openssl dgst -sha512 | sed 's/^.*= //'`.strip
+        # `printf "%s" #{Shellwords.shellescape(src)} | openssl dgst -sha512 | sed 's/^.*= //'`.strip
+        return OpenSSL::Digest::SHA512.hexdigest(src)
       end
 
       def calculate_salt(account_name)
@@ -104,24 +107,68 @@ module Isuconp
 
       def make_posts(results, all_comments: false)
         posts = []
-        results.to_a.each do |post|
-          post[:comment_count] = db.prepare('SELECT COUNT(*) AS `count` FROM `comments` WHERE `post_id` = ?').execute(
-            post[:id]
-          ).first[:count]
+        # posts.idをあらかじめ取り出してキャッシュのキーを一覧にする
+        const_keys = results.to_a.map{|post| "comments.#{post[:id]}.count"}
+        # get_multiで複数のキーを一度に取得する
+        cached_counts = memcached.get_multi(const_keys)
 
-          query = 'SELECT * FROM `comments` WHERE `post_id` = ? ORDER BY `created_at` DESC'
-          unless all_comments
-            query += ' LIMIT 3'
+        results.to_a.each do |post|
+          if cached_counts["comments.#{post[:id]}.count"]
+            post[:comment_count] = cached_counts["comments.#{post[:id]}.count"].to_i
+          else
+            post[:comment_count] = db.xquery('SELECT COUNT(*) AS `count` FROM `comments` WHERE `post_id` = ?', post[:id]).first[:count]
+            # memcachedにキャッシュを保存
+            memcached.set("comments.#{post[:id]}.count", post[:comment_count], 10) # 壽命は10秒
           end
-          comments = db.prepare(query).execute(
-            post[:id]
-          ).to_a
-          comments.each do |comment|
-            comment[:user] = db.prepare('SELECT * FROM `users` WHERE `id` = ?').execute(
-              comment[:user_id]
-            ).first
+          # 投稿ごとのコメント数をmemcachedからget
+          # cached_comments_count = memcached.get("comments.#{post[:id]}.count")
+          # if cached_comments_count
+          #   # キャッシュが存在する場合はそれを使う
+          #   post[:comment_count] = cached_comments_count.to_i
+          # else
+          #   post[:comment_count] = db.xquery('SELECT COUNT(*) AS `count` FROM `comments` WHERE `post_id` = ?', post[:id]).first[:count]
+          #   # memcachedにキャッシュを保存
+          #   memcached.set("comments.#{post[:id]}.count", post[:comment_count], 10) # 壽命は10秒
+          # end
+          # post[:comment_count] = db.prepare('SELECT COUNT(*) AS `count` FROM `comments` WHERE `post_id` = ?').execute(
+          #   post[:id]
+          # ).first[:count]
+
+          # 投稿ごとのコメントをmemcachedからget
+          cached_comments = memcached.get("comments.#{post[:id]}.#{all_comments.to_s}")
+          if cached_comments
+            # キャッシュが存在する場合はそれを使う
+            post[:comments] = cached_comments
+          else
+            # キャッシュが存在しない場合はDBから取得
+            query = 'SELECT c.`comment`, c.`created_at`, u.`account_name`
+                     FROM `comments` c JOIN `users` u ON `user_id` = u.`id`
+                     WHERE c.`post_id` = ? ORDER BY c.`created_at` DESC'
+            unless all_comments
+              query += ' LIMIT 3'
+            end
+            comments = db.xquery(query, post[:id]).to_a
+            comments.each do |comment|
+              comment[:user] = { account_name: comment[:account_name] }
+            end
+            post[:comments] = comments.reverse
+            # memcachedにセット（TTL 10s）
+            memcached.set("comments.#{post[:id]}.#{all_comments.to_s}", post[:comments], 10)
           end
-          post[:comments] = comments.reverse
+
+          # query = 'SELECT * FROM `comments` WHERE `post_id` = ? ORDER BY `created_at` DESC'
+          # unless all_comments
+          #   query += ' LIMIT 3'
+          # end
+          # comments = db.prepare(query).execute(
+          #   post[:id]
+          # ).to_a
+          # comments.each do |comment|
+          #   comment[:user] = db.prepare('SELECT * FROM `users` WHERE `id` = ?').execute(
+          #     comment[:user_id]
+          #   ).first
+          # end
+          # post[:comments] = comments.reverse
 
           # post[:user] = db.prepare('SELECT * FROM `users` WHERE `id` = ?').execute(
           #   post[:user_id]
@@ -238,7 +285,7 @@ module Isuconp
       # JOINとLIMITを使った改善後のクエリ
       improved_query = 'SELECT p.id, p.user_id, p.body, p.created_at, p.mime, u.account_name FROM `posts` AS p JOIN `users` AS u ON (p.user_id=u.id) WHERE u.del_flg=0 ORDER BY p.created_at DESC LIMIT 20'
 
-      results = db.query(improved_query)
+      results = db.query(improved_query) # 20件取得
       posts = make_posts(results)
 
       erb :index, layout: :layout, locals: { posts: posts, me: me }
@@ -248,6 +295,7 @@ module Isuconp
       user = db.prepare('SELECT * FROM `users` WHERE `account_name` = ? AND `del_flg` = 0').execute(
         params[:account_name]
       ).first
+      # user = db.xquery('SELECT * FROM `users` WHERE `account_name` = ? AND `del_flg` = 0',params[:account_name]).first
 
       if user.nil?
         return 404
